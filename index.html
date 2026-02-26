@@ -177,7 +177,7 @@
       <div class="hint" id="hint"></div>
       <div class="meta">
         <div class="small" id="campaignInfo"></div>
-        <div class="small">Canal: <a href="https://t.me/templateswordpress" rel="noopener noreferrer">t.me/templateswordpress</a></div>
+        <div class="small">Invitación: <a href="https://t.me/+QHbaQiE86r00NDVh" rel="noopener noreferrer">t.me/+QHbaQiE86r00NDVh</a></div>
       </div>
       <pre class="stats" id="statsBox"></pre>
     </div>
@@ -186,10 +186,12 @@
   </div>
 
   <script>
-    // Canal configurado
-    const USERNAME = "templateswordpress";
-    const TME_LINK = `https://t.me/${USERNAME}`;
-    const TG_DEEP  = `tg://resolve?domain=${USERNAME}`;
+    // Invite link configurado
+    const INVITE_HASH = "QHbaQiE86r00NDVh";
+    const TME_LINK = `https://t.me/+${INVITE_HASH}`;
+    const TG_DEEP  = `tg://join?invite=${INVITE_HASH}`;
+    const TG_INTENT =
+      `intent://join?invite=${INVITE_HASH}#Intent;scheme=tg;package=org.telegram.messenger;S.browser_fallback_url=${encodeURIComponent(TME_LINK)};end`;
 
     const ua = navigator.userAgent.toLowerCase();
     const isAndroid = ua.includes("android");
@@ -229,7 +231,6 @@
     }
 
     const trackedTmeLink = withQuery(TME_LINK, utm);
-    const INTENT_TG = `intent://resolve?domain=${USERNAME}#Intent;scheme=tg;package=org.telegram.messenger;end`;
 
     function loadStats() {
       try {
@@ -316,13 +317,10 @@
       cancelFallback();
       increment("open_app_clicks");
 
-      // Android: cadena de intentos fuertes. iOS/otros: tg:// directo.
+      // Intentos de abrir app en el gesto del usuario.
       if (isAndroid) {
-        const intentHttps =
-          `intent://t.me/${USERNAME}#Intent;scheme=https;package=org.telegram.messenger;S.browser_fallback_url=${encodeURIComponent(trackedTmeLink)};end`;
-        clickNav(INTENT_TG);
-        setTimeout(() => clickNav(intentHttps), 80);
-        setTimeout(() => clickNav(TG_DEEP), 160);
+        clickNav(TG_INTENT);
+        setTimeout(() => clickNav(TG_DEEP), 120);
       } else if (isIOS) {
         window.location.href = TG_DEEP;
         setTimeout(() => clickNav(TG_DEEP), 60);
@@ -330,11 +328,10 @@
         window.location.href = TG_DEEP;
       }
 
-      // Fallback final: t.me
+      // Fallback final: web link
       fallbackTimer = setTimeout(() => {
         increment("open_web_fallbacks");
         try { window.open(trackedTmeLink, "_blank", "noopener,noreferrer"); } catch (_) {}
-        clickNav(trackedTmeLink, "_blank");
         window.location.href = trackedTmeLink;
       }, 900);
     }
