@@ -5,35 +5,184 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Canal de Telegram</title>
   <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    :root { color-scheme: dark; }
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; margin:0; background:#0b0b0c; color:#fff;}
-    .wrap{max-width:520px; margin:0 auto; padding:28px;}
-    .card{background:#141416; border:1px solid #232327; border-radius:16px; padding:20px;}
-    h1{font-size:22px; margin:0 0 10px;}
-    p{opacity:.9; line-height:1.45; margin:0 0 12px;}
-    .btn{display:block; width:100%; border:0; border-radius:14px; padding:14px 16px; font-weight:800; cursor:pointer; margin-top:12px; font-size:15px;}
-    .primary{background:#22c55e; color:#07120a;}
-    .secondary{background:#2b2b30; color:#fff;}
-    .hint{margin-top:12px; font-size:13px; opacity:.8;}
-    .small{font-size:12px; opacity:.75; margin-top:10px;}
-    a{color:#9ae6b4;}
+    :root {
+      color-scheme: dark;
+      --bg-a: #060c18;
+      --bg-b: #0f1a31;
+      --bg-c: #0d1426;
+      --surface: #111a2c;
+      --surface-strong: #18243a;
+      --border: #2f3e5a;
+      --text: #f7f9ff;
+      --muted: #b7c3e0;
+      --accent: #33d27a;
+      --accent-strong: #19ba65;
+      --secondary-btn: #2b3650;
+      --secondary-btn-hover: #354567;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 10% -10%, #1f3f7e55, transparent 60%),
+        radial-gradient(900px 600px at 100% 10%, #2c8f7b33, transparent 60%),
+        linear-gradient(145deg, var(--bg-a), var(--bg-b) 55%, var(--bg-c));
+    }
+
+    .wrap {
+      width: min(100%, 860px);
+      margin: 0 auto;
+      padding: clamp(18px, 4vw, 42px);
+    }
+
+    .card {
+      background: linear-gradient(180deg, #16233a 0%, var(--surface) 100%);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: clamp(20px, 4vw, 34px);
+      box-shadow:
+        0 16px 44px rgba(2, 8, 20, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .kicker {
+      margin: 0 0 12px;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #8fd0ff;
+      font-weight: 700;
+    }
+
+    h1 {
+      font-family: "Sora", "Avenir Next", sans-serif;
+      font-size: clamp(28px, 4.8vw, 42px);
+      line-height: 1.12;
+      margin: 0;
+    }
+
+    .lead {
+      margin: 14px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      max-width: 62ch;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      padding: 15px 16px;
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 15px;
+      transition: transform .18s ease, filter .18s ease, background-color .18s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .primary {
+      background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+      color: #072111;
+    }
+
+    .primary:hover { filter: brightness(1.05); }
+
+    .secondary {
+      background: var(--secondary-btn);
+      color: #f5f8ff;
+    }
+
+    .secondary:hover { background: var(--secondary-btn-hover); }
+
+    .hint {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #d3dbef;
+      line-height: 1.45;
+    }
+
+    .meta {
+      margin-top: 14px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #a9b6d8;
+    }
+
+    a {
+      color: #8de9be;
+      text-underline-offset: 2px;
+    }
+
+    .stats {
+      display: none;
+      margin-top: 12px;
+      white-space: pre-wrap;
+      background: #101827;
+      border: 1px solid #2d3a58;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 12px;
+      color: #cfd8ef;
+    }
+
+    .footer {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 12px;
+      color: #8f9ec2;
+    }
+
+    @media (min-width: 640px) {
+      .actions { grid-template-columns: 1fr 1fr; }
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>Únete al canal</h1>
-      <p>Haz clic para abrir Telegram.</p>
+      <p class="kicker">Comunidad Telegram</p>
+      <h1>Únete al canal oficial</h1>
+      <p class="lead">Accede a nuevas plantillas, recursos y actualizaciones. Si estás en un navegador embebido, abre en navegador y vuelve a intentar.</p>
 
-      <button class="btn primary" id="joinBtn">Abrir Telegram</button>
-      <button class="btn secondary" id="webBtn">Abrir enlace web (t.me)</button>
+      <div class="actions">
+        <button class="btn primary" id="joinBtn">Abrir Telegram</button>
+        <button class="btn secondary" id="webBtn">Abrir enlace web (t.me)</button>
+      </div>
 
       <div class="hint" id="hint"></div>
-      <div class="small" id="campaignInfo"></div>
-      <div class="small">Canal: <a href="https://t.me/templateswordpress" rel="noopener noreferrer">t.me/templateswordpress</a></div>
-      <pre class="small" id="statsBox" style="display:none; white-space:pre-wrap; background:#101014; border:1px solid #232327; border-radius:10px; padding:10px;"></pre>
+      <div class="meta">
+        <div class="small" id="campaignInfo"></div>
+        <div class="small">Canal: <a href="https://t.me/templateswordpress" rel="noopener noreferrer">t.me/templateswordpress</a></div>
+      </div>
+      <pre class="stats" id="statsBox"></pre>
     </div>
+
+    <footer class="footer">Desarrollado por Ject - Todos los derechos reservados <span id="year"></span>.</footer>
   </div>
 
   <script>
@@ -51,7 +200,9 @@
     const hintEl = document.getElementById("hint");
     const campaignInfoEl = document.getElementById("campaignInfo");
     const statsBoxEl = document.getElementById("statsBox");
+    const yearEl = document.getElementById("year");
     const params = new URLSearchParams(window.location.search);
+    yearEl.textContent = new Date().getFullYear();
 
     // UTM capture (se usa para anexar tracking al link web y para conteo local)
     const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"];
