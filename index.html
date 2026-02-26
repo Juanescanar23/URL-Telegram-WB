@@ -190,8 +190,11 @@
     const USERNAME = "templateswordpress";
     const TME_LINK = `https://t.me/${USERNAME}`;
     const TG_DEEP  = `tg://resolve?domain=${USERNAME}`;
+    // Android: en varios webviews embebidos, intent:// tiene mejor tasa que tg://
+    const TG_INTENT = `intent://t.me/${USERNAME}#Intent;scheme=https;package=org.telegram.messenger;end`;
 
     const ua = navigator.userAgent.toLowerCase();
+    const isAndroid = ua.includes("android");
     const isTikTok = ua.includes("tiktok");
     const isInstagram = ua.includes("instagram");
     const isFacebook = ua.includes("fbav") || ua.includes("fban");
@@ -248,7 +251,12 @@
     function increment(metric) {
       const stats = loadStats();
       if (!stats[campaignKey]) {
-        stats[campaignKey] = { views: 0, open_app_clicks: 0, open_web_clicks: 0 };
+        stats[campaignKey] = {
+          views: 0,
+          open_app_clicks: 0,
+          open_web_clicks: 0,
+          open_web_fallbacks: 0
+        };
       }
       stats[campaignKey][metric] = (stats[campaignKey][metric] || 0) + 1;
       saveStats(stats);
@@ -273,7 +281,7 @@
 
     if (isTikTok) {
       hintEl.textContent =
-        "Nota: Estás dentro del navegador de TikTok. Si no abre Telegram, toca ⋯ arriba y elige “Abrir en navegador” (Chrome/Safari) y vuelve a tocar el botón.";
+        "Estás dentro del navegador de TikTok. TikTok puede bloquear la apertura directa de Telegram; si no abre, toca ⋯ y elige “Abrir en navegador”, luego vuelve a tocar “Abrir Telegram”.";
     } else if (isInApp) {
       hintEl.textContent =
         "Nota: Estás dentro de un navegador embebido. Si no abre Telegram, usa “Abrir en navegador” y prueba de nuevo.";
@@ -283,13 +291,37 @@
 
     document.getElementById("joinBtn").addEventListener("click", () => {
       increment("open_app_clicks");
-      // Intento 1: abrir la app (deep link)
-      window.location.href = TG_DEEP;
+      // Intento 1: Android intent://, otros tg://
+      const firstTryLink = isAndroid ? TG_INTENT : TG_DEEP;
+      let fallbackDone = false;
 
-      // Fallback 1: abrir t.me
-      setTimeout(() => {
+      const fallbackTimer = setTimeout(() => {
+        fallbackDone = true;
+        increment("open_web_fallbacks");
         window.location.href = trackedTmeLink;
       }, 1500);
+
+      const clearFallback = () => {
+        if (fallbackDone) return;
+        clearTimeout(fallbackTimer);
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+        window.removeEventListener("pagehide", onPageHide);
+      };
+
+      const onVisibilityChange = () => {
+        if (document.hidden) {
+          clearFallback();
+        }
+      };
+
+      const onPageHide = () => {
+        clearFallback();
+      };
+
+      document.addEventListener("visibilitychange", onVisibilityChange);
+      window.addEventListener("pagehide", onPageHide, { once: true });
+
+      window.location.href = firstTryLink;
     });
 
     document.getElementById("webBtn").addEventListener("click", () => {
