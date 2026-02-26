@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Canal de Telegram</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <style>
+    :root { color-scheme: dark; }
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; margin:0; background:#0b0b0c; color:#fff;}
+    .wrap{max-width:520px; margin:0 auto; padding:28px;}
+    .card{background:#141416; border:1px solid #232327; border-radius:16px; padding:20px;}
+    h1{font-size:22px; margin:0 0 10px;}
+    p{opacity:.9; line-height:1.45; margin:0 0 12px;}
+    .btn{display:block; width:100%; border:0; border-radius:14px; padding:14px 16px; font-weight:800; cursor:pointer; margin-top:12px; font-size:15px;}
+    .primary{background:#22c55e; color:#07120a;}
+    .secondary{background:#2b2b30; color:#fff;}
+    .hint{margin-top:12px; font-size:13px; opacity:.8;}
+    .small{font-size:12px; opacity:.75; margin-top:10px;}
+    a{color:#9ae6b4;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Únete al canal</h1>
+      <p>Haz clic para abrir Telegram.</p>
+
+      <button class="btn primary" id="joinBtn">Abrir Telegram</button>
+      <button class="btn secondary" id="webBtn">Abrir enlace web (t.me)</button>
+
+      <div class="hint" id="hint"></div>
+      <div class="small" id="campaignInfo"></div>
+      <div class="small">Canal: <a href="https://t.me/templateswordpress" rel="noopener noreferrer">t.me/templateswordpress</a></div>
+      <pre class="small" id="statsBox" style="display:none; white-space:pre-wrap; background:#101014; border:1px solid #232327; border-radius:10px; padding:10px;"></pre>
+    </div>
+  </div>
+
+  <script>
+    // Canal configurado
+    const USERNAME = "templateswordpress";
+    const TME_LINK = `https://t.me/${USERNAME}`;
+    const TG_DEEP  = `tg://resolve?domain=${USERNAME}`;
+
+    const ua = navigator.userAgent.toLowerCase();
+    const isTikTok = ua.includes("tiktok");
+    const isInstagram = ua.includes("instagram");
+    const isFacebook = ua.includes("fbav") || ua.includes("fban");
+    const isInApp = isTikTok || isInstagram || isFacebook;
+
+    const hintEl = document.getElementById("hint");
+    const campaignInfoEl = document.getElementById("campaignInfo");
+    const statsBoxEl = document.getElementById("statsBox");
+    const params = new URLSearchParams(window.location.search);
+
+    // UTM capture (se usa para anexar tracking al link web y para conteo local)
+    const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"];
+    const utm = {};
+    UTM_KEYS.forEach((k) => {
+      const v = params.get(k);
+      if (v) utm[k] = v;
+    });
+
+    const campaignKey = [
+      utm.utm_source || "direct",
+      utm.utm_medium || "none",
+      utm.utm_campaign || "default"
+    ].join("|");
+
+    function withQuery(baseUrl, extra) {
+      const url = new URL(baseUrl);
+      Object.keys(extra).forEach((k) => {
+        if (extra[k]) url.searchParams.set(k, extra[k]);
+      });
+      return url.toString();
+    }
+
+    const trackedTmeLink = withQuery(TME_LINK, utm);
+
+    function loadStats() {
+      try {
+        const raw = localStorage.getItem("tg_campaign_stats");
+        return raw ? JSON.parse(raw) : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveStats(stats) {
+      try {
+        localStorage.setItem("tg_campaign_stats", JSON.stringify(stats));
+      } catch {
+        // Ignore storage errors (private mode / blocked storage)
+      }
+    }
+
+    function increment(metric) {
+      const stats = loadStats();
+      if (!stats[campaignKey]) {
+        stats[campaignKey] = { views: 0, open_app_clicks: 0, open_web_clicks: 0 };
+      }
+      stats[campaignKey][metric] = (stats[campaignKey][metric] || 0) + 1;
+      saveStats(stats);
+    }
+
+    function renderStatsIfRequested() {
+      if (params.get("stats") !== "1") return;
+      const stats = loadStats();
+      statsBoxEl.style.display = "block";
+      statsBoxEl.textContent = "Contador local (este dispositivo):\n" + JSON.stringify(stats, null, 2);
+    }
+
+    if (Object.keys(utm).length > 0) {
+      campaignInfoEl.textContent =
+        `Campaña detectada: ${campaignKey.replace(/\|/g, " / ")}`;
+    } else {
+      campaignInfoEl.textContent = "Campaña detectada: tráfico directo";
+    }
+
+    increment("views");
+    renderStatsIfRequested();
+
+    if (isTikTok) {
+      hintEl.textContent =
+        "Nota: Estás dentro del navegador de TikTok. Si no abre Telegram, toca ⋯ arriba y elige “Abrir en navegador” (Chrome/Safari) y vuelve a tocar el botón.";
+    } else if (isInApp) {
+      hintEl.textContent =
+        "Nota: Estás dentro de un navegador embebido. Si no abre Telegram, usa “Abrir en navegador” y prueba de nuevo.";
+    } else {
+      hintEl.textContent = "Si no tienes Telegram instalado, se abrirá el enlace web.";
+    }
+
+    document.getElementById("joinBtn").addEventListener("click", () => {
+      increment("open_app_clicks");
+      // Intento 1: abrir la app (deep link)
+      window.location.href = TG_DEEP;
+
+      // Fallback 1: abrir t.me
+      setTimeout(() => {
+        window.location.href = trackedTmeLink;
+      }, 1500);
+    });
+
+    document.getElementById("webBtn").addEventListener("click", () => {
+      increment("open_web_clicks");
+      window.location.href = trackedTmeLink;
+    });
+  </script>
+</body>
+</html>
